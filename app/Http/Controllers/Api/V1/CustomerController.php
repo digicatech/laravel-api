@@ -16,6 +16,7 @@ class CustomerController extends Controller
     /**
      * Display a listing of the resource.
      * http://127.0.0.1/api/v1/customers?zip[gt]=90000&type[eq]=B
+     * http://127.0.0.1/api/v1/customers?zip[gt]=90000&includeInvoices=true
      * http://127.0.0.1/api/v1/customers
      *
      * @return \Illuminate\Http\Response
@@ -23,15 +24,19 @@ class CustomerController extends Controller
     public function index(Request $request)
     {
         $filter = new CustomersFilter();
-        $queryItems = $filter->transform($request); //[['column','operator','value']}]
+        $filterItems = $filter->transform($request); //[['column','operator','value']}]
 
-        if (count($queryItems) == 0) {
-            return new CustomerCollection(Customer::paginate()); 
+
+        $includeInvoices = $request->query('includeInvoices');
+        
+
+        $customers = Customer::where($filterItems);
+
+        if ($includeInvoices == "true") {
+            $customers = $customers->with('invoices');
         }
-        else {
-            $customers = Customer::where($queryItems)->paginate();
-            return new CustomerCollection($customers->appends($request->query())); 
-        }
+
+        return new CustomerCollection($customers->paginate()->appends($request->query())); 
     }
 
     /**
@@ -63,6 +68,12 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
+        $includeInvoices = request()->query('includeInvoices');
+
+        if ($includeInvoices == 'true') {
+            return new CustomerResource($customer->loadMissing('invoices'));
+        }
+
         return new CustomerResource($customer);
     }
 

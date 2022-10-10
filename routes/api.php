@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\V1\InvoiceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,3 +24,5 @@ Route::group(['prefix' => 'v1', 'namespace' => 'App\Http\Controllers\Api\V1'], f
     Route::apiresource('customers',CustomerController::class);
     Route::apiresource('invoices',InvoiceController::class);
 });
+
+Route::post('invoices/bulk' , [InvoiceController::class , 'bulkStore']);
